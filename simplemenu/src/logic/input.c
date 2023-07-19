@@ -28,7 +28,28 @@ int isDown() {
 	return (event.jaxis.axis == 1&&event.jaxis.value > JOYSTICK_DEAD_ZONE);
 }
 
+int initializeJoystick() {
+    // Initialize joystick
+    if (SDL_NumJoysticks() > 0) {
+        joystick = SDL_JoystickOpen(0);
+        if (joystick == NULL) {
+            printf("Failed to open joystick: %s\n", SDL_GetError());
+            return 1;
+        }
 
+        printf("Joystick Name: %s\n", SDL_JoystickName(0));
+        printf("Number of Axes: %d\n", SDL_JoystickNumAxes(joystick));
+        printf("Number of Buttons: %d\n", SDL_JoystickNumButtons(joystick));
+    }
+
+    SDL_Event event;
+    while (SDL_PollEvent(&event)) {
+        // We are just polling all events to remove the initial joystick events from the queue.
+    }
+    printf("Finished setting up joystick\n");
+
+    return 0;
+}
 
 int getPressedKey() {
 	return event.key.keysym.sym;

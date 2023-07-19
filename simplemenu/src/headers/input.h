@@ -7,5 +7,6 @@ int getKeyDown();
 int getKeyUp();
 void enableKeyRepeat();
 void initializeKeys();
+void initializeJoystick();
 void pumpEvents();
 #endif

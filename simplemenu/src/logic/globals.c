@@ -114,15 +114,22 @@ int OC_NO;
 int OC_OC_LOW;
 int OC_OC_HIGH;
 int OC_SLEEP;
+int rg_defaultOC;
+int rgOCValues[5] = {240000,840000,1008000,1200000,1296000};
 int backlightValue;
 int hdmiChanged;
 #if defined MIYOOMINI
+int CPUMIYOO;
+char cpuclock[200];
 int audioFix;
 int luminationValue;
+int volValue;
 int hueValue;
 int saturationValue;
 int contrastValue;
+int mmModel;
 #endif
+int volValue;
 pthread_t myThread;
 
 /* THEME */

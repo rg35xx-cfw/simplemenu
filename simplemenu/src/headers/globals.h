@@ -137,15 +137,24 @@ extern int OC_NO;
 extern int OC_OC_LOW;
 extern int OC_OC_HIGH;
 extern int OC_SLEEP;
+
+extern int rgOCValues[5];
+extern int rg_defaultOC;
+
 extern int backlightValue;
 extern int hdmiChanged;
 #if defined MIYOOMINI
+extern int CPUMIYOO;
+extern char cpuclock[200];
 extern int audioFix;
 extern int luminationValue;
+extern int volValue;
 extern int hueValue;
 extern int saturationValue;
 extern int contrastValue;
 #endif
+extern int volValue;
+
 extern pthread_t myThread;
 
 /* THEME */

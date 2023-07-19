@@ -19,6 +19,7 @@ int isSelectPressed();
 void performChoosingAction();
 void performGroupChoosingAction();
 void performSettingsChoosingAction();
+void performScreenSettingsChoosingAction();
 void performAppearanceSettingsChoosingAction();
 void performSystemSettingsChoosingAction();
 void performHelpAction();

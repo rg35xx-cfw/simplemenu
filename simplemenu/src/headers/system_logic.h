@@ -15,4 +15,10 @@ void rumble();
 int getCurrentBrightness();
 int getMaxBrightness();
 void setBrightness(int value);
+int getCurrentVolume();
+int get_master_volume();
+int setVolumeRaw(int volume, int add);
+int setVolume(int volume, int add);
+int getCurrentSystemValue(char const *key);
+void setSystemValue(char const *key, int value);
 #endif

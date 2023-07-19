@@ -827,20 +827,90 @@ void performScreenSettingsChoosingAction() {
 }
 #endif
 
+#if defined MIYOOMINI
 void performSystemSettingsChoosingAction() {
 	VOLUME_OPTION=0;
 	BRIGHTNESS_OPTION=1;
-	SHARPNESS_OPTION=2;
-	SCREEN_TIMEOUT_OPTION=3;
-	OC_OPTION=4;
-	USB_OPTION=5;
-#if defined MIYOOMINI
-    AUDIOFIX_OPTION = 6;
-    SCREEN_OPTION = 7;
-    NUM_SYSTEM_OPTIONS = 8;
+	OC_OPTION=2;
+    NUM_SYSTEM_OPTIONS = 3;
+	if (keys[BTN_UP]) {
+		if(chosenSetting>0) {
+			chosenSetting--;
+		} else {
+			chosenSetting=NUM_SYSTEM_OPTIONS-1;
+		}
+	} else if (keys[BTN_DOWN]) {
+		if(chosenSetting<NUM_SYSTEM_OPTIONS-1) {
+			chosenSetting++;
+		} else {
+			chosenSetting=0;
+		}
+	} else if (keys[BTN_LEFT]||keys[BTN_RIGHT]) {
+		if (chosenSetting==BRIGHTNESS_OPTION) {
+			if (keys[BTN_LEFT]) {
+				if (brightnessValue>1) {
+					brightnessValue-=1;
+				}
+			} else {
+				if (brightnessValue<maxBrightnessValue) {
+					brightnessValue+=1;
+				}
+			}
+			setBrightness(brightnessValue);
+		} else if (chosenSetting==OC_OPTION) {
+			FILE *fp = fopen("/sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq", "r");
+			int CPUMIYOO;
+			fscanf(fp, "%d", &CPUMIYOO);
+			fclose(fp);
+			if (keys[BTN_LEFT]) {
+				if (CPUMIYOO>400000) {
+					CPUMIYOO-=200000;
+					char cpuclock[200];
+					snprintf(cpuclock, sizeof(cpuclock), "echo %d > /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq", CPUMIYOO);
+					system(cpuclock);
+				}
+			} else {
+				if (CPUMIYOO<1200000) {
+					CPUMIYOO+=200000;
+					char cpuclock[200];
+					snprintf(cpuclock, sizeof(cpuclock), "echo %d > /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq", CPUMIYOO);
+					system(cpuclock);
+				}
+			}
+		} else if (chosenSetting==VOLUME_OPTION) {
+			if (keys[BTN_LEFT]) {
+				if (volValue>0) {
+					int volume;
+					volume = 0;//getCurrentSystemValue("vol");
+					volValue-=1;
+					//setVolume(volume, -1);
+					//setSystemValue("vol", volValue);
+				}
+			} else {
+				if (volValue<20) {
+					int volume;
+					volume = 0;//getCurrentSystemValue("vol");
+					volValue+=1;
+					//setVolume(volume, 1);
+					//setSystemValue("vol", volValue);
+				}
+			}
+		}
+	} else if (keys[BTN_B]) {
+		chosenSetting=previouslyChosenSetting;
+		currentState=SETTINGS_SCREEN;
+	}
+}
 #else
+void performSystemSettingsChoosingAction() {
+	VOLUME_OPTION=0;
+	BRIGHTNESS_OPTION=1;
+	// SHARPNESS_OPTION=2;
+	OC_OPTION=2;
+	SCREEN_TIMEOUT_OPTION=3;
+	//OC_OPTION=4;
+	USB_OPTION=5;
     NUM_SYSTEM_OPTIONS = 6;
-#endif
 	if (keys[BTN_UP]) {
 		if(chosenSetting>0) {
 			chosenSetting--;
@@ -872,15 +942,43 @@ void performSystemSettingsChoosingAction() {
 			}
 		} else if (chosenSetting==BRIGHTNESS_OPTION) {
 			if (keys[BTN_LEFT]) {
-				if (brightnessValue>1) {
-					brightnessValue-=1;
+				if (brightnessValue>25) {
+					brightnessValue-=25;
 				}
 			} else {
 				if (brightnessValue<maxBrightnessValue) {
-					brightnessValue+=1;
+					brightnessValue+=25;
 				}
 			}
 			setBrightness(brightnessValue);
+		} else if (chosenSetting==OC_OPTION) {
+			FILE *fp = fopen("/sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq", "r");
+			int CPUMIYOO;
+			fscanf(fp, "%d", &CPUMIYOO);
+			fclose(fp);
+			printf("MAX_FREQ: %d\n", CPUMIYOO);
+			printf("oc_value: %d\n", OCValue);
+			printf("OC_SLEEP: %d\n", OC_SLEEP);
+			printf("OC_OC_HIGH: %d\n", OC_OC_HIGH);
+			if (keys[BTN_LEFT]) {
+				if (CPUMIYOO > OC_SLEEP) {
+					rg_defaultOC--;
+					printf("RGOCVAL: %d\n",rgOCValues[rg_defaultOC]);
+					CPUMIYOO=rgOCValues[rg_defaultOC];
+					char cpuclock[200];
+					snprintf(cpuclock, sizeof(cpuclock), "echo %d > /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq", CPUMIYOO);
+					system(cpuclock);
+				}
+			} else {
+				if (CPUMIYOO <= OC_OC_HIGH) {
+					rg_defaultOC++;
+					printf("RGOCVAL: %d\n",rgOCValues[rg_defaultOC]);
+					CPUMIYOO=rgOCValues[rg_defaultOC];
+					char cpuclock[200];
+					snprintf(cpuclock, sizeof(cpuclock), "echo %d > /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq", CPUMIYOO);
+					system(cpuclock);
+				}
+			}
 		} else if (chosenSetting==SHARPNESS_OPTION) {
 			if (keys[BTN_LEFT]) {
 				if (sharpnessValue>0) {
@@ -897,23 +995,32 @@ void performSystemSettingsChoosingAction() {
 //			screen = SDL_SetVideoMode(SCREEN_WIDTH, SCREEN_HEIGHT, 16, SDL_NOFRAME|SDL_SWSURFACE);
 		} else if (chosenSetting==OC_OPTION) {
 #if defined TARGET_OD_BETA || defined TARGET_PC
-			if (OCValue==OC_OC_LOW) {
-				OCValue=OC_OC_HIGH;
+			FILE *fp = fopen("/sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq", "r");
+			int CPUMIYOO;
+			fscanf(fp, "%d", &CPUMIYOO);
+			fclose(fp);
+			if (keys[BTN_LEFT]) {
+				if (CPUMIYOO>400000) {
+					CPUMIYOO-=200000;
+					char cpuclock[200];
+					snprintf(cpuclock, sizeof(cpuclock), "echo %d > /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq", CPUMIYOO);
+					system(cpuclock);
+				}
 			} else {
-				OCValue=OC_OC_LOW;
+				if (CPUMIYOO<1200000) {
+					CPUMIYOO+=200000;
+					char cpuclock[200];
+					snprintf(cpuclock, sizeof(cpuclock), "echo %d > /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq", CPUMIYOO);
+					system(cpuclock);
+				}
 			}
+		}
 #else
 			OCValue=OC_NO;
+		}
 #endif
-        }
-#if defined MIYOOMINI
-        else if (chosenSetting==AUDIOFIX_OPTION) {
-            audioFix = 1 - audioFix;
-            setSystemValue("audiofix", audioFix);
-        }
-#endif
+#ifndef TARGET_RG35XX
 	} else if (chosenSetting==VOLUME_OPTION&&keys[BTN_A]) {
-#ifndef MIYOOMINI
 		if (keys[BTN_A]) {
 			executeCommand ("/usr/bin", "alsamixer", "#", 1, OC_NO);
 		}
@@ -922,28 +1029,50 @@ void performSystemSettingsChoosingAction() {
 #if defined TARGET_RFW
 		executeCommand ("./scripts/", "usb_mode_on.sh", "#", 0, OC_NO);
 		hotKeyPressed=0;
-#elif defined TARGET_OD_BETA
+#elif defined TARGET_OD_BETA || defined TARGET_RG35XX
 		selectedShutDownOption=1;
 		running=0;
 #endif
-#if defined MIYOOMINI
-	} else if (chosenSetting==SCREEN_OPTION&&keys[BTN_A]) {
-		chosenSetting=0;
-		currentState=SCREEN_SETTINGS;
-#endif
-	} else if (keys[BTN_B]) {
+	} else if (chosenSetting==VOLUME_OPTION) {
+		if (keys[BTN_LEFT]) {
+			if (volValue>0) {
+				int volume;
+				volume = get_master_volume();//0;//getCurrentSystemValue("vol");
+				volValue=volume;//-=1;
+				//setVolume(volume, -1);
+				//setSystemValue("vol", volValue);
+			}
+		} else {
+			if (volValue<20) {
+				int volume;
+				volume = get_master_volume();//0;//getCurrentSystemValue("vol");
+				volValue=volume;//+=1;
+				//setVolume(volume, 1);
+				//setSystemValue("vol", volValue);
+			}
+		}
+	}	else if (keys[BTN_B]) {
 		chosenSetting=previouslyChosenSetting;
 		currentState=SETTINGS_SCREEN;
 	}
 }
-
+#endif
+	
 void performSettingsChoosingAction() {
+	#if defined MIYOOMINI
 	SHUTDOWN_OPTION=0;
 	THEME_OPTION=1;
-	DEFAULT_OPTION=2;
-	APPEARANCE_OPTION=3;
-	SYSTEM_OPTION=4;
-	HELP_OPTION=5;
+	APPEARANCE_OPTION=2;
+	SYSTEM_OPTION=3;
+	HELP_OPTION=4;
+	#else
+	SHUTDOWN_OPTION=0;
+	THEME_OPTION=1;
+	//DEFAULT_OPTION=2;
+	APPEARANCE_OPTION=2;
+	SYSTEM_OPTION=3;
+	HELP_OPTION=4;
+	#endif
 
 	if (keys[BTN_UP]) {
 		if(chosenSetting>0) {
@@ -1127,7 +1256,7 @@ void performChoosingAction() {
 		}
 	} else if (keys[BTN_LEFT]) {
 		if(chosenChoosingOption==0) {
-#if defined TARGET_OD_BETA || defined TARGET_RFW || defined TARGET_BITTBOY || defined TARGET_PC
+#if defined TARGET_OD_BETA || defined TARGET_RFW || defined TARGET_BITTBOY || defined TARGET_PC || defined TARGET_RG35XX
 			if (rom->preferences.frequency==OC_NO) {
 				rom->preferences.frequency=OCValue;
 			} else {
@@ -1156,7 +1285,7 @@ void performChoosingAction() {
 		}
 	} else 	if (keys[BTN_RIGHT]) {
 		if(chosenChoosingOption==0) {
-#if defined TARGET_OD_BETA || defined TARGET_RFW || defined TARGET_BITTBOY || defined TARGET_PC
+#if defined TARGET_OD_BETA || defined TARGET_RFW || defined TARGET_BITTBOY || defined TARGET_PC || defined TARGET_RG35XX
 			if (rom->preferences.frequency==OC_NO) {
 				rom->preferences.frequency=OCValue;
 			} else {

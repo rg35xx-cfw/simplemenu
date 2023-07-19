@@ -472,7 +472,9 @@ int displayCenteredImageOnScreen(char *fileName, char *fallBackText, int scaleTo
 
 void initializeDisplay(int w, int h) {
 	int depth=16;
-#if defined(TARGET_PC) || defined(MIYOOMINI)
+#if defined (TARGET_RG35XX)
+	Uint32 pcflags = SDL_SWSURFACE | SDL_NOFRAME ;
+#elif defined(TARGET_PC) || defined(MIYOOMINI)
 	Uint32 pcflags = SDL_HWSURFACE|SDL_NOFRAME;
 #else
 	Uint32 flags = SDL_SWSURFACE|SDL_NOFRAME;
@@ -487,7 +489,7 @@ void initializeDisplay(int w, int h) {
 	SDL_FreeSurface(screen);
 	SDL_Quit();
 #endif
-	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER);
+	SDL_Init(SDL_INIT_JOYSTICK | SDL_INIT_VIDEO | SDL_INIT_TIMER);
 	char * line = NULL;
 	size_t len = 0;
 	FILE *fpHDMI = fopen("/sys/class/hdmi/hdmi","r");
@@ -520,7 +522,7 @@ void initializeDisplay(int w, int h) {
 	fprintf(fp,"0");
 	fclose(fp);
 #endif
-#if defined(TARGET_PC) || defined(MIYOOMINI)
+#if defined(TARGET_PC) || defined(MIYOOMINI) || defined(TARGET_RG35XX)
 	SCREEN_HEIGHT = h;
 	SCREEN_WIDTH = w;
 	char msg[1000];
@@ -528,6 +530,7 @@ void initializeDisplay(int w, int h) {
 	logMessage("INFO", "initializeDisplay", msg);
 	SCREEN_RATIO = (double)SCREEN_WIDTH/SCREEN_HEIGHT;
 	screen = SDL_SetVideoMode(SCREEN_WIDTH, SCREEN_HEIGHT, depth, pcflags);
+	SDL_ShowCursor(0);
 	char tempString[1000];
 	snprintf(tempString, sizeof(tempString), "%s/.simplemenu/resources/loading.png", getenv("HOME"));
 	SDL_Surface* image;

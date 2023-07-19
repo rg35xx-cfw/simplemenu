@@ -75,7 +75,7 @@ void checkIfDefault() {
 	fp = fopen("/media/data/local/sbin/frontend_start", "r");
 	fpScripts = fopen("scripts/frontend_start", "r");
 	#endif
-	#ifdef MIYOOMINI
+	#if defined MIYOOMINI || defined TARGET_RG35XX
 	//In Miyoo Mini there is no optional startup script.
 	//The closest is /mnt/SDCARD/.tmp_update/updater but we can't count on it because
 	//it is used by most distributions, so we control the quit menu manually by means
@@ -840,13 +840,13 @@ void loadConfig() {
 		alternateControls=0;
 	}
 
-	value = ini_get(config, "CPU", "overclocked_speed_low");
+	value = ini_get(config, "CPU", "underclocked_speed");
 	OC_OC_LOW=atoifgl(value);
 
 	value = ini_get(config, "CPU", "normal_speed");
 	OC_NO=atoifgl(value);
 
-	value = ini_get(config, "CPU", "overclocked_speed_high");
+	value = ini_get(config, "CPU", "overclocked_speed");
 	OC_OC_HIGH=atoifgl(value);
 
 	value = ini_get(config, "CPU", "sleep_speed");

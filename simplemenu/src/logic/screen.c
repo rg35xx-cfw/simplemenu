@@ -4,6 +4,7 @@
 #include <string.h>
 #include <time.h>
 #include <ctype.h>
+#include <sys/stat.h>
 
 #include "../headers/constants.h"
 #include "../headers/definitions.h"
@@ -133,11 +134,11 @@ void drawBigWhiteText(char *text) {
 }
 
 void drawLoadingText() {
-	#ifndef NOLOADING
-	int white[3]={255, 255, 255};
-	drawTextOnScreen(settingsFooterFont, NULL, SCREEN_WIDTH-calculateProportionalSizeOrDistance1(44), SCREEN_HEIGHT-calculateProportionalSizeOrDistance1(8), "LOADING...", white, VAlignMiddle | HAlignCenter, (int[]){}, 0);
-	refreshScreen();
-	#endif
+	// #ifndef NOLOADING
+	// int white[3]={255, 255, 255};
+	// drawTextOnScreen(settingsFooterFont, NULL, SCREEN_WIDTH-calculateProportionalSizeOrDistance1(44), SCREEN_HEIGHT-calculateProportionalSizeOrDistance1(8), "LOADING...", white, VAlignMiddle | HAlignCenter, (int[]){}, 0);
+	// refreshScreen();
+	// #endif
 }
 
 void drawCopyingText() {
@@ -387,7 +388,8 @@ void drawTextOnHeader() {
 
 void initializeSettingsFonts() {
 	logMessage("INFO","initializeSettingsFonts","Initializing Settings Fonts");
-	char *akashi = "resources/akashi.ttf";
+	char akashi[1000];
+	snprintf(akashi, sizeof(akashi), "%s/.simplemenu/resources/akashi.ttf", getenv("HOME"));
 	settingsfont = TTF_OpenFont(akashi, calculateProportionalSizeOrDistance1(14));
 	settingsHeaderFont = TTF_OpenFont(akashi, calculateProportionalSizeOrDistance1(27));
 	settingsStatusFont = TTF_OpenFont(akashi, calculateProportionalSizeOrDistance1(14));
@@ -397,7 +399,8 @@ void initializeSettingsFonts() {
 
 void initializeFonts() {
 	TTF_Init();
-	char *akashi = "resources/akashi.ttf";
+	char akashi[1000];
+	snprintf(akashi, sizeof(akashi), "%s/.simplemenu/resources/akashi.ttf", getenv("HOME"));
 
 	font = TTF_OpenFont(menuFont, fontSize);
 	outlineFont = TTF_OpenFont(menuFont, fontSize);
@@ -732,13 +735,17 @@ void showRomPreferences() {
 	drawTextOnScreen(font, NULL, calculateProportionalSizeOrDistance1(6), (SCREEN_HEIGHT/2)-calculateProportionalSizeOrDistance1(28), name, (int[]) {255,255,255}, VAlignMiddle | HAlignLeft, (int[]){}, 0);
 	free(name);
 
+#if defined MIYOOMINI
+	TTF_SizeUTF8(font, (const char *) "Autostart: " , &textWidth, NULL);
+	textWidth+=calculateProportionalSizeOrDistance1(2);
+#else
 	TTF_SizeUTF8(font, (const char *) "Overclock: " , &textWidth, NULL);
 	textWidth+=calculateProportionalSizeOrDistance1(2);
 
 	//Frequency option text
 	drawTextOnScreen(font, NULL, (SCREEN_WIDTH/2)-width/2+calculateProportionalSizeOrDistance1(4), (SCREEN_HEIGHT/2)-calculateProportionalSizeOrDistance1(9), "Overclock: ", textColor, VAlignMiddle | HAlignLeft, (int[]){}, 0);
 	//Frequency option value
-#if defined TARGET_OD_BETA || defined TARGET_RFW || defined TARGET_BITTBOY || defined TARGET_PC || defined MIYOOMINI
+#if defined TARGET_OD_BETA || defined TARGET_RFW || defined TARGET_BITTBOY || defined TARGET_PC || defined MIYOOMINI || defined TARGET_RG35XX
 	if (CURRENT_SECTION.currentGameNode->data->preferences.frequency==OC_OC_LOW || CURRENT_SECTION.currentGameNode->data->preferences.frequency==OC_OC_HIGH) {
 		drawTextOnScreen(font, NULL, (SCREEN_WIDTH/2)-width/2+textWidth+1, (SCREEN_HEIGHT/2)-calculateProportionalSizeOrDistance1(9), "yes", valueColor, VAlignMiddle | HAlignLeft, (int[]){}, 0);
 	} else {
@@ -747,9 +754,11 @@ void showRomPreferences() {
 #else
 	drawTextOnScreen(font, NULL, (SCREEN_WIDTH/2)-width/2+textWidth, (SCREEN_HEIGHT/2)-calculateProportionalSizeOrDistance1(9), "not available", valueColor, VAlignMiddle | HAlignLeft, (int[]){}, 0);
 #endif
-
 	drawRectangleToScreen(width, calculateProportionalSizeOrDistance1(1), SCREEN_WIDTH/2-width/2,SCREEN_HEIGHT/2, problematicGray);
-
+#endif
+	
+	drawRectangleToScreen(width, calculateProportionalSizeOrDistance1(1), SCREEN_WIDTH/2-width/2,SCREEN_HEIGHT/2, problematicGray);	
+	
 	//Launch at boot option text
 	drawTextOnScreen(font, NULL, (SCREEN_WIDTH/2)-width/2+calculateProportionalSizeOrDistance1(4), (SCREEN_HEIGHT/2)+calculateProportionalSizeOrDistance1(9), "Autostart: ", textColor, VAlignMiddle | HAlignLeft, (int[]){}, 0);
 	//Launch at boot option value
@@ -767,8 +776,11 @@ void showRomPreferences() {
 	drawTextOnScreen(font, NULL, (SCREEN_WIDTH/2)-width/2+textWidth, (SCREEN_HEIGHT/2)+calculateProportionalSizeOrDistance1(27), emuName, valueColor, VAlignMiddle | HAlignLeft, (int[]){}, 0);
 
 	free(emuName);
+#if defined MIYOOMINI || defined TARGET_RG35XX
+#else
 	free(frequency);
-
+#endif
+	
 	logMessage("INFO","showRomPreferences","Preferences shown");
 }
 
@@ -983,6 +995,18 @@ void displayGamePictureInMenu(struct Rom *rom) {
 
 	int len = strlen(originalGameName);
 	const char *lastFour = &originalGameName[len-4];
+
+	char *fullMediaFolderPath=malloc(900);
+	strcpy(fullMediaFolderPath, pictureWithFullPath);
+	strcat(fullMediaFolderPath, "media/images");
+
+    struct stat st;
+    if (stat(fullMediaFolderPath, &st) == 0 && S_ISDIR(st.st_mode)) {
+		strcpy(mediaFolder,"media/images");
+	} else {
+        strcpy(mediaFolder, "Imgs");
+	} 
+	printf("updated mediaFolder: %s\n",mediaFolder);
 
 	if (strcmp(lastFour,".png") != 0) {
 		strcat(pictureWithFullPath,mediaFolder);
@@ -1208,7 +1232,7 @@ void drawSpecialScreen(char *title, char **options, char** values, char** hints,
 	int selected=0;
 	#if defined TARGET_RFW
 	int max = 9;
-	#elif defined TARGET_OD || defined TARGET_OD_BETA || defined TARGET_PC
+	#elif defined TARGET_OD || defined TARGET_OD_BETA || defined TARGET_PC || defined TARGET_RG35XX
 	int max = 9;
 	#else
 	int max = 8;
@@ -1360,17 +1384,22 @@ void setupScreenSettings() {
 #endif
 
 void setupSystemSettings() {
+#if defined MIYOOMINI || defined TARGET_RG35XX
+	options[0]="Volume ";
+	values[0]=malloc(100);
+	sprintf(values[0], "%d", volValue);
+	hints[0] = "ADJUST VOLUME LEVEL";
+#else
 	options[0]="Sound ";
-#ifdef MIYOOMINI
-	values[0] = "not available";
-#endif
 	hints[0] = "PRESS A TO LAUNCH ALSAMIXER";
-
+#endif
+	
 	options[1]="Brightness ";
 	values[1]=malloc(100);
 	sprintf(values[1],"%d",brightnessValue);
 	hints[1] = "ADJUST BRIGHTNESS LEVEL";
-
+#if defined MIYOOMINI || defined TARGET_RG35XX
+#else
 	options[2]="Sharpness ";
 	values[2]=malloc(100);
 //	char *temp = getenv("SDL_VIDEO_KMSDRM_SCALING_SHARPNESS");
@@ -1383,7 +1412,8 @@ void setupSystemSettings() {
 //	}
 	sprintf(values[2],"%d",sharpnessValue);
 	hints[2] = "ADJUST SHARPNESS LEVEL";
-
+#endif
+#ifndef MIYOOMINI
 	options[3]="Screen timeout ";
 	values[3]=malloc(100);
 	if (timeoutValue>0&&hdmiEnabled==0) {
@@ -1391,9 +1421,13 @@ void setupSystemSettings() {
 	} else {
 		sprintf(values[3],"%s","always on");
 	}
-	hints[3] = "SECONDS UNTIL THE SCREEN TURNS OFF";
-
+	hints[3] = "MINUTES UNTIL THE SCREEN TURNS OFF";
+#endif
+#if defined (MIYOOMINI) || defined (TARGET_RG35XX)
+	options[2]="Cpu clock";
+#else
 	options[4]="Overclocking level";
+#endif
 
 #if defined TARGET_OD_BETA || defined TARGET_PC
 	if (OCValue==OC_OC_LOW) {
@@ -1402,17 +1436,37 @@ void setupSystemSettings() {
 		values[4]="high";
 	}
 #else
+#if defined (MIYOOMINI) || defined (TARGET_RG35XX)
+	FILE *fp = fopen("/sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq", "r");
+	int max_freq;
+	fscanf(fp, "%d", &max_freq);
+    fclose(fp);
+	if (max_freq==1296000) {
+		values[2]="1296Mhz";
+	} else if (max_freq==1200000){
+		values[2]="1200Mhz";
+	} else if (max_freq==1008000){
+		values[2]="1008Mhz";
+	} else if (max_freq==840000){
+		values[2]="840Mhz";
+	} else if (max_freq==240000){
+		values[2]="240Mhz";
+	}
+#else
 	values[4]="not available";
 #endif
-
-	hints[4] = "AFFECTS THE ROM MENU OC SETTING";
-
-	options[5]="HDMI ";
-#if defined TARGET_RFW || defined TARGET_OD_BETA
-	values[5] = " \0";
-#elif defined MIYOOMINI
-	values[5] = "not available";
+#endif
+#if defined (MIYOOMINI) || defined (TARGET_RG35XX)
+	hints[2] = "CHANGE THE CPU SPEED";
 #else
+	hints[4] = "AFFECTS THE ROM MENU OC SETTING";
+#endif
+
+#if defined MIYOOMINI || defined TARGET_RG35XX
+#else
+#if defined TARGET_RFW || defined TARGET_OD_BETA
+	options[5]="HDMI ";
+	values[5] = " \0";
 	if (hdmiChanged==1) {
 		values[5] = "enabled";
 	} else {
@@ -1427,18 +1481,19 @@ void setupSystemSettings() {
 #else
 	hints[5] = "ENABLE OR DISABLE HDMI";
 #endif
-
+#endif
+	
 #if defined MIYOOMINI
-	options[6] = "Audio fix ";
+	options[3] = "Audio fix ";
     if (audioFix) {
-		values[6] = "yes";
+		values[3] = "yes";
 	} else {
-		values[6] = "no";
+		values[3] = "no";
 	}
-    hints[6] = "REBOOT TO APPLY AFTER CHANGING";
+    hints[3] = "ENABLE OR DISABLE AUDIOSERVER";
 
-    options[7]="Screen ";
-	hints[7] = "SCREEN OPTIONS";
+    options[4]="Screen ";
+	hints[4] = "SCREEN OPTIONS";
 #endif
 }
 
@@ -1452,7 +1507,10 @@ void setupSettingsScreen() {
 				break;
 			case 1:
 				#ifdef MIYOOMINI
-				values[0] = "shutdown";
+				if (mmModel)
+					values[0] = "shutdown";
+				else
+					values[0] = "reboot";
 				#else
 				values[0] = "reboot";
 				#endif
@@ -1465,7 +1523,10 @@ void setupSettingsScreen() {
 				break;
 			case 1:
 				#ifdef MIYOOMINI
-				values[0] = "shutdown";
+				if (mmModel)
+					values[0] = "shutdown";
+				else
+					values[0] = "reboot";
 				#else
 				values[0] = "reboot";
 				#endif
@@ -1479,28 +1540,15 @@ void setupSettingsScreen() {
 	options[1]="Theme ";
 	char *themeName=getNameWithoutPath((themes[activeTheme]));
 	values[1] = themeName;
-	hints[1] = "LAUNCHER THEME";
+	hints[1] = "LAUNCHER THEME";	
+	options[2]="Appearance ";
+	hints[2] = "APPEARANCE OPTIONS";
 
-	options[2]="Default launcher ";
-	#ifdef MIYOOMINI
-	values[2] = "not available";
-	#else
-	if (shutDownEnabled) {
-		values[2] = "yes";
-	} else {
-		values[2] = "no";
-	}
-	#endif
-	hints[2] = "LAUNCH AFTER BOOTING";
+	options[3]="System ";
+	hints[3] = "SYSTEM OPTIONS";
 
-	options[3]="Appearance ";
-	hints[3] = "APPEARANCE OPTIONS";
-
-	options[4]="System ";
-	hints[4] = "SYSTEM OPTIONS";
-
-	options[5]="Help ";
-	hints[5] = "HOW TO USE THIS MENU";
+	options[4]="Help ";
+	hints[4] = "HOW TO USE THIS MENU";
 }
 
 
@@ -1629,6 +1677,11 @@ void setupKeys() {
 	logMessage("INFO","setupKeys","Input successfully configured");
 }
 
+void setupJoystick() {
+	initializeJoystick();
+	logMessage("INFO","setupJoystick","Joystick successfully configured");
+}
+
 void clearShutdownTimer() {
 	if (shutdownTimer != NULL) {
 		SDL_RemoveTimer(shutdownTimer);
@@ -1747,7 +1800,7 @@ uint32_t batteryCallBack() {
 
 
 void startBatteryTimer() {
-	batteryTimer=SDL_AddTimer(1 * 60e3, batteryCallBack, NULL);
+	batteryTimer=SDL_AddTimer(0.5 * 1e3, batteryCallBack, NULL);
 }
 
 void freeResources() {

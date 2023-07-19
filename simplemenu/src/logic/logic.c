@@ -9,7 +9,6 @@
 #include <string.h>
 #include <time.h>
 #include <stdio.h>
-#include "opk.h"
 
 #include <sys/ioctl.h>
 #if defined(TARGET_NPG) || defined(TARGET_OD) || defined TARGET_OD_BETA
@@ -88,7 +87,7 @@ char* getRomRealName(char *romName) {
 }
 
 int getOPK(char *package_path, struct OPKDesktopFile *desktopFiles) {
-#ifndef TARGET_BITTBOY
+#if !defined TARGET_BITTBOY && !defined TARGET_RG35XX
 	struct OPK *opk = opk_open(package_path);
 	if (opk == NULL) {
 		return 0;
@@ -99,7 +98,7 @@ int getOPK(char *package_path, struct OPKDesktopFile *desktopFiles) {
 	char *terminal;
 
 	int i = 0;
-#ifndef TARGET_BITTBOY
+#if !defined TARGET_BITTBOY && !defined TARGET_RG35XX
 	while (1) {
 		const char *metadata_name;
 		if (opk_open_metadata(opk, &metadata_name) <= 0) {
@@ -205,6 +204,9 @@ void quit() {
 		if (selectedShutDownOption == 1) {
 			execlp("sh", "sh", "-c", "sync && reboot", NULL);
 		} else {
+			#ifdef TARGET_RG35XX
+			system("rm /boot/boot/reboot && sync");
+			#endif
 			#ifdef MIYOOMINI
 			execlp("sh", "sh", "-c", "sync && reboot", NULL);
 			#else
@@ -215,6 +217,9 @@ void quit() {
 		if (selectedShutDownOption == 1) {
 			execlp("sh", "sh", "-c", "sync && reboot", NULL);
 		} else if (selectedShutDownOption == 2) {
+			#ifdef TARGET_RG35XX
+			system("rm /boot/boot/reboot && sync");
+			#endif
 			#ifdef MIYOOMINI
 			execlp("sh", "sh", "-c", "sync && reboot", NULL);
 			#else
@@ -273,10 +278,10 @@ int checkIfEmulatorExists(char *path, char *executable) {
 }
 
 void resetFrameBuffer1() {
-	int ret = system("./scripts/reset_fb");
-	if (ret == -1) {
-		generateError("FATAL ERROR", 1);
-	}
+	//int ret = system("./scripts/reset_fb");
+	//if (ret == -1) {
+	//	generateError("FATAL ERROR", 1);
+	//}
 }
 
 void executeCommand(char *emulatorFolder, char *executable,	char *fileToBeExecutedWithFullPath, int consoleApp, int frequency) {
@@ -292,7 +297,7 @@ void executeCommand(char *emulatorFolder, char *executable,	char *fileToBeExecut
 		}
 		strcat(fileToBeExecutedWithFullPath1, fileToBeExecutedWithFullPath);
 	}
-	#ifndef TARGET_OD_BETA
+	#if !defined TARGET_OD_BETA && !defined TARGET_RG35XX
 	unsetenv("SDL_FBCON_DONT_CLEAR");
 	#endif
 	char pReturnTo[3];
@@ -334,16 +339,17 @@ void executeCommand(char *emulatorFolder, char *executable,	char *fileToBeExecut
 		SDL_putenv("SDL_VIDEO_KMSDRM_SCALING_MODE"); //3: not set
 	}
 #endif
+#ifndef TARGET_RG35XX
 	fp = fopen("/sys/class/graphics/fb0/device/allow_downscaling", "w");
 	if (fp != NULL) {
 		fprintf(fp, "%d", 1);
 		fclose(fp);
 	}
-
+#endif
 	logMessage("INFO", "executeCommand", emulatorFolder);
 	logMessage("INFO", "executeCommand", exec);
 	logMessage("INFO", "executeCommand", fileToBeExecutedWithFullPath);
-	SDL_ShowCursor(1);
+//	SDL_ShowCursor(1);
 	freeResources();
 #ifndef TARGET_OD_BETA
 	resetFrameBuffer1();
@@ -372,10 +378,10 @@ void executeCommand(char *emulatorFolder, char *executable,	char *fileToBeExecut
 #endif
 
 	if(consoleApp) {
-		execlp("./invoker.dge", "invoker.dge", emulatorFolder, exec,
+		execlp("invoker.dge", "invoker.dge", emulatorFolder, exec,
 				fileToBeExecutedWithFullPath1, NULL);
 	} else {
-		execlp("./invoker.dge", "invoker.dge", emulatorFolder, exec,
+		execlp("invoker.dge", "invoker.dge", emulatorFolder, exec,
 				fileToBeExecutedWithFullPath, NULL);
 	}
 
