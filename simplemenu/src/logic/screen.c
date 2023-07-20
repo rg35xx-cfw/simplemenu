@@ -4,7 +4,6 @@
 #include <string.h>
 #include <time.h>
 #include <ctype.h>
-#include <sys/stat.h>
 
 #include "../headers/constants.h"
 #include "../headers/definitions.h"
@@ -996,18 +995,6 @@ void displayGamePictureInMenu(struct Rom *rom) {
 	int len = strlen(originalGameName);
 	const char *lastFour = &originalGameName[len-4];
 
-	char *fullMediaFolderPath=malloc(900);
-	strcpy(fullMediaFolderPath, pictureWithFullPath);
-	strcat(fullMediaFolderPath, "media/images");
-
-    struct stat st;
-    if (stat(fullMediaFolderPath, &st) == 0 && S_ISDIR(st.st_mode)) {
-		strcpy(mediaFolder,"media/images");
-	} else {
-        strcpy(mediaFolder, "Imgs");
-	} 
-	printf("updated mediaFolder: %s\n",mediaFolder);
-
 	if (strcmp(lastFour,".png") != 0) {
 		strcat(pictureWithFullPath,mediaFolder);
 		strcat(pictureWithFullPath,"/");
@@ -1793,13 +1780,14 @@ void clearBatteryTimer() {
 }
 
 uint32_t batteryCallBack() {
-	lastChargeLevel = getBatteryLevel();
+	lastChargeLevel = 100;//getBatteryLevel();
 	refreshRequest=1;
 	return 60000;
 }
 
 
 void startBatteryTimer() {
+	printf("startBatteryTimer\n");
 	batteryTimer=SDL_AddTimer(0.5 * 1e3, batteryCallBack, NULL);
 }
 

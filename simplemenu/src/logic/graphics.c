@@ -79,7 +79,7 @@ int drawTextOnScreenMaxWidth(TTF_Font *font, TTF_Font *outline, int x, int y, ch
 		TTF_SizeUTF8(font, (const char *) bufCopy, &retW, &retH);
 	}
 	if (shaded) {
-		drawRectangleToScreen(width+((SCREEN_WIDTH*3)/640)*2, retH, gameListX-((SCREEN_WIDTH*3)/640), y, backgroundColor);
+		drawRectangleToScreen(width+((SCREEN_WIDTH*3)/320)*2, retH, gameListX-((SCREEN_WIDTH*3)/320), y, backgroundColor);
 		if (currentState==BROWSING_GAME_LIST  && outline != NULL && fontOutline > 0) {
 			msg1 = TTF_RenderUTF8_Blended(outline, bufCopy, make_color(50, 50, 50));
 			msg = TTF_RenderUTF8_Solid(font, bufCopy, make_color(txtColor[0], txtColor[1], txtColor[2]));
@@ -142,7 +142,7 @@ int drawTextOnScreen(TTF_Font *font, TTF_Font *outline, int x, int y, char *buf,
 		int retW = 1;
 		int retH = 1;
 		TTF_SizeUTF8(font, (const char *) buf, &retW, &retH);
-		drawRectangleToScreen(width+((SCREEN_WIDTH*3)/640)*2, retH, gameListX-((SCREEN_WIDTH*3)/640), y, backgroundColor);
+		drawRectangleToScreen(width+((SCREEN_WIDTH*3)/320)*2, retH, gameListX-((SCREEN_WIDTH*3)/320), y, backgroundColor);
 		if (currentState==BROWSING_GAME_LIST  && outline != NULL && fontOutline > 0) {
 			msg1 = TTF_RenderUTF8_Blended(outline, buf, make_color(50, 50, 50));
 			msg = TTF_RenderUTF8_Solid(font, buf, make_color(txtColor[0], txtColor[1], txtColor[2]));
@@ -473,13 +473,13 @@ int displayCenteredImageOnScreen(char *fileName, char *fallBackText, int scaleTo
 void initializeDisplay(int w, int h) {
 	int depth=16;
 #if defined (TARGET_RG35XX)
-	Uint32 pcflags = SDL_SWSURFACE | SDL_NOFRAME ;
+	Uint32 pcflags = SDL_SWSURFACE | SDL_NOFRAME;
 #elif defined(TARGET_PC) || defined(MIYOOMINI)
 	Uint32 pcflags = SDL_HWSURFACE|SDL_NOFRAME;
 #else
 	Uint32 flags = SDL_SWSURFACE|SDL_NOFRAME;
 #endif
-	SDL_ShowCursor(0);
+	//SDL_ShowCursor(0);
 	logMessage("INFO","initializeDisplay","well...");
 	setenv("SDL_FBCON_DONT_CLEAR", "1", 0);
 	logMessage("INFO","initializeDisplay","maybe...");
@@ -530,7 +530,7 @@ void initializeDisplay(int w, int h) {
 	logMessage("INFO", "initializeDisplay", msg);
 	SCREEN_RATIO = (double)SCREEN_WIDTH/SCREEN_HEIGHT;
 	screen = SDL_SetVideoMode(SCREEN_WIDTH, SCREEN_HEIGHT, depth, pcflags);
-	SDL_ShowCursor(0);
+	// SDL_ShowCursor(0);
 	char tempString[1000];
 	snprintf(tempString, sizeof(tempString), "%s/.simplemenu/resources/loading.png", getenv("HOME"));
 	SDL_Surface* image;
@@ -544,7 +544,7 @@ void initializeDisplay(int w, int h) {
 	sprintf(res, "resolution: %dx%d", w, h);
 	logMessage("INFO" , "initializeDisplay", res);
 	FILE *fp1;
-	SDL_ShowCursor(0);
+	//SDL_ShowCursor(0);
 
 	SCREEN_WIDTH=320;
 	SCREEN_HEIGHT=240;
@@ -565,9 +565,9 @@ void initializeDisplay(int w, int h) {
 	} else {
 		logMessage("INFO", "initializeDisplay", "Some Available modes");
 		for(int i=0; modes[i]; i++) {
-			if (modes[i]->w==640 && modes[i]->h ==480) {
-				SCREEN_WIDTH=640;
-				SCREEN_HEIGHT=480;
+			if (modes[i]->w==320 && modes[i]->h ==240) {
+				SCREEN_WIDTH=320;
+				SCREEN_HEIGHT=240;
 				break;
 			}
 		}
@@ -587,7 +587,7 @@ void initializeDisplay(int w, int h) {
 }
 
 void getTextWidth(TTF_Font *font, char *text, int *widthToBeSet){
-	TTF_UTF8Text(font, (const char *) text, widthToBeSet, NULL);
+	//TTF_UTF8Text(font, (const char *) text, widthToBeSet, NULL);
 }
 
 void refreshScreen() {
