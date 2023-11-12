@@ -47,7 +47,7 @@ void setCPU(uint32_t mhz)
 		char strMhz[10];
 		printf("CPUFREQ_SET: %s\n", SYSFS_CPUFREQ_SET);
 		int fd = open(SYSFS_CPUFREQ_SET, O_RDWR);
-		to_string(strMhz, (mhz * 1000));
+		to_string(strMhz, (mhz * 1));
 		ssize_t ret = write(fd, strMhz, strlen(strMhz));
 		if (ret==-1) {
 			logMessage("ERROR", "setCPU", "Error writting to file");
@@ -186,12 +186,18 @@ int getMaxBrightness() {
 }
 
 void setBrightness(int value) {
-		printf("setBrightness: %d\n",value);
+	printf("setBrightness: %d\n",value);
 
 	FILE *f = fopen("/sys/class/backlight/backlight.2/brightness", "w");
 	if (f!=NULL) {
 		fprintf(f, "%d", value);
 		fclose(f);
+	}
+	// Add the brightness value to the persistent storage
+	FILE *fb = fopen("/boot/boot/brightness", "w");
+	if (fb!=NULL) {
+		fprintf(fb, "%d", value);
+		fclose(fb);
 	}
 }
 
