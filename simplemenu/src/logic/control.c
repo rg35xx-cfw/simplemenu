@@ -910,7 +910,7 @@ void performSystemSettingsChoosingAction() {
 	SCREEN_TIMEOUT_OPTION=3;
 	//OC_OPTION=4;
 	USB_OPTION=5;
-    NUM_SYSTEM_OPTIONS = 6;
+    NUM_SYSTEM_OPTIONS = 4;
 	if (keys[BTN_UP]) {
 		if(chosenSetting>0) {
 			chosenSetting--;
