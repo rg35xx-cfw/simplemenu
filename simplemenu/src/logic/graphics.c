@@ -293,7 +293,7 @@ void drawTransparentRectangleToScreen(int w, int h, int x, int y, int rgbColor[]
 	rectangleDest.h = h;
 	rectangleDest.x = x;
 	rectangleDest.y = y;
-	transparentrectangle = SDL_CreateRGBSurface(SDL_SWSURFACE, w, h, 16, 0, 0, 0, 0);
+	transparentrectangle = SDL_CreateRGBSurface(SDL_SWSURFACE, w, h, 32, 0, 0, 0, 0);
 	SDL_FillRect(transparentrectangle, &rectangleOrig, SDL_MapRGB(transparentrectangle->format, rgbColor[0], rgbColor[1], rgbColor[2]));
 	SDL_SetAlpha(transparentrectangle, SDL_SRCALPHA, opacity);
 	SDL_BlitSurface(transparentrectangle, &rectangleOrig, screen, &rectangleDest);
@@ -471,7 +471,7 @@ int displayCenteredImageOnScreen(char *fileName, char *fallBackText, int scaleTo
 }
 
 void initializeDisplay(int w, int h) {
-	int depth=16;
+	int depth=32;
 #if defined (TARGET_RG35XX)
 	Uint32 pcflags = SDL_SWSURFACE | SDL_NOFRAME ;
 #elif defined(TARGET_PC) || defined(MIYOOMINI)

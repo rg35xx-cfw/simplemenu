@@ -1396,7 +1396,9 @@ void setupSystemSettings() {
 	
 	options[1]="Brightness ";
 	values[1]=malloc(100);
-	sprintf(values[1],"%d",brightnessValue);
+	float percentBrightness = (float)brightnessValue/1030 * 100;
+	printf("brightness: %d - %.0f\n", brightnessValue, percentBrightness);
+	sprintf(values[1],"%.0f %%",percentBrightness);
 	hints[1] = "ADJUST BRIGHTNESS LEVEL";
 #if defined MIYOOMINI || defined TARGET_RG35XX
 #else
