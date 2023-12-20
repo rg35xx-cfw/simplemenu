@@ -202,7 +202,7 @@ void quit() {
 		exit(0);
 #endif
 		if (selectedShutDownOption == 1) {
-			execlp("sh", "sh", "-c", "sync && reboot", NULL);
+			execlp("sh", "sh", "-c", "sync && reboot -f", NULL);
 		} else {
 			#ifdef TARGET_RG35XX
 			system("rm /boot/boot/reboot && sync");
@@ -210,12 +210,12 @@ void quit() {
 			#ifdef MIYOOMINI
 			execlp("sh", "sh", "-c", "sync && reboot", NULL);
 			#else
-			execlp("sh", "sh", "-c", "sync && poweroff", NULL);
+			execlp("sh", "sh", "-c", "/usr/bin/poweroff.sh", NULL);
 			#endif
 		}
 	} else {
 		if (selectedShutDownOption == 1) {
-			execlp("sh", "sh", "-c", "sync && reboot", NULL);
+			execlp("sh", "sh", "-c", "sync && reboot -f", NULL);
 		} else if (selectedShutDownOption == 2) {
 			#ifdef TARGET_RG35XX
 			system("rm /boot/boot/reboot && sync");
@@ -223,7 +223,7 @@ void quit() {
 			#ifdef MIYOOMINI
 			execlp("sh", "sh", "-c", "sync && reboot", NULL);
 			#else
-			execlp("sh", "sh", "-c", "sync && poweroff", NULL);
+			execlp("sh", "sh", "-c", "/usr/bin/poweroff.sh", NULL);
 			#endif
 		} else {
 			exit(0);
