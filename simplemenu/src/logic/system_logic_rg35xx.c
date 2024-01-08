@@ -194,7 +194,7 @@ void setBrightness(int value) {
 		fclose(f);
 	}
 	// Add the brightness value to the persistent storage
-	FILE *fb = fopen("/boot/boot/brightness", "w");
+	FILE *fb = fopen("/userdata/system/.brightness", "w");
 	if (fb!=NULL) {
 		fprintf(fb, "%d", value);
 		fclose(fb);
