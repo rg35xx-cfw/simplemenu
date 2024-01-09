@@ -52,7 +52,7 @@ else
 	CC = gcc
 	LINKER   = gcc
 	CFLAGS = -DTARGET_PC -DUSE_GZIP -Ofast -fdata-sections -ffunction-sections -fPIC -flto -Wall -Wextra -std=gnu99
-	LIBS += -lSDL -lasound -lSDL_image -lSDL_ttf -lopk -lz
+	LIBS += -lSDL -lasound -lSDL_image -lSDL_ttf -lz
 endif
 ifeq ($(NOLOADING), 1)
 	CFLAGS += -DNOLOADING
