@@ -39,10 +39,10 @@ void initializeGlobals() {
 }
 
 void resetFrameBuffer () {
-	//int ret = system("./scripts/reset_fb");
-	//if (ret==-1) {
-	//	generateError("FATAL ERROR", 1);
-	//}
+	int ret = system("./scripts/reset_fb");
+	if (ret==-1) {
+		generateError("FATAL ERROR", 1);
+	}
 	logMessage("INFO","resetFrameBuffer","Reset Framebuffer");
 }
 
@@ -130,7 +130,7 @@ void initialSetup2() {
 	#endif
 	determineStartingScreen(sectionCount);
 	enableKeyRepeat();
-	lastChargeLevel=getBatteryLevel();
+	lastChargeLevel=0;//getBatteryLevel();
 	beforeTryingToSwitchGroup = activeGroup;
 	brightnessValue = getCurrentBrightness();
 	maxBrightnessValue = getMaxBrightness();
@@ -144,65 +144,43 @@ void initialSetup2() {
 }
 
 SDLKey mapButtonToKey(int button) {
-    SDLKey key = SDLK_UNKNOWN;
-    // Map the joystick button to a corresponding keyboard key, set they keys to the right key
-    printf("MAPBUTTONTOKEY BTN: %d\n", button);
+    // Map the joystick button to a corresponding keyboard key
+	printf("MAPBUTTONTOKEY BTN: %d\n", button);
     switch (button) {
-        case 13:
-	    keys[BTN_UP]=1;
-            return 273;
-        case 14:
-	    keys[BTN_DOWN]=1;
-            return 274;
-        case 15:
-	    keys[BTN_LEFT]=1;
-            return 276;
-        case 16:
-	    keys[BTN_RIGHT]=1;
-            return 275;
-	case 0:
-	    keys[BTN_A]=1;
-	    return 97;
-	case 1:
-	    keys[BTN_B]=1;
-	    return 98;
-	case 2:
-	    keys[BTN_X]=1;
-	    return 121;
-	case 3:
-	    keys[BTN_Y]=1;
-	    return 120;
-	case 9:
-	    keys[BTN_START]=1;
-	    return 13;
-	case 8:
-	    keys[BTN_SELECT]=1;
-	    return 32;
+        case 275:
+            return 27;
+        case 276:
+            return 51;
+        case 274:
+            return SDLK_LEFT;
+        case 273:
+            return SDLK_RIGHT;
         default:
-	    memset(keys, 0, 16*sizeof(uint8_t));
             return SDLK_UNKNOWN;
     }
 }
 
 SDLKey previousKey = SDLK_UNKNOWN;
 
-void generateKeyboardEvent(SDLKey key, SDL_EventType eventType) {
+void generateKeyboardEvent(int button) {
+    SDLKey key = mapButtonToKey(button);
 
-    printf("generateKBE: KEY: %d, Event: %s\n", key, (eventType == SDL_KEYDOWN? "PRESSED": "RELEASED"));
-    if(eventType == SDL_KEYUP) {
-	keys[key]=0;
+    if (key != SDLK_UNKNOWN) {
+        SDL_Event event;
+        event.type = getKeyDown();
+        event.key.keysym.sym = key;
+        //event.key.repeat = 0;
+        SDL_PushEvent(&event);
+
+        // event.type = getKeyUp();
+        // //event.key.repeat = 0;
+        // SDL_PushEvent(&event);
     }
-
-    SDL_Event event;
-    event.type = eventType;
-    event.key.keysym.sym = key;
-    event.key.state = eventType == SDL_KEYDOWN ? SDL_PRESSED : SDL_RELEASED;
-    SDL_PushEvent(&event);
 }
 
 void generateAxisEvent(int axis, int value) {
     SDLKey key = SDLK_UNKNOWN;
-    printf("GENERATEAXISEVENT AXIS: %d VALUE: %d\n", axis, value);
+	printf("GENERATEAXISEVENT AXIS: %d VALUE: %d\n", axis, value);
 
     // Determine the keyboard key based on the joystick axis and value
     if (axis == 0) {
@@ -219,41 +197,16 @@ void generateAxisEvent(int axis, int value) {
     }
 
     if (key != SDLK_UNKNOWN) {
-        if (key != previousKey) {
-            if (previousKey != SDLK_UNKNOWN)
-                generateKeyboardEvent(previousKey, SDL_KEYUP);
-            generateKeyboardEvent(key, SDL_KEYDOWN);
-        }
-        previousKey = key;
-    } else {
-        if (previousKey != SDLK_UNKNOWN) {
-            generateKeyboardEvent(previousKey, SDL_KEYUP);
-            previousKey = SDLK_UNKNOWN;
-        }
+        generateKeyboardEvent(key);
     }
 }
-
-#define REPEAT_DELAY 500 // Delay before repeating in milliseconds
-#define REPEAT_RATE 50   // Rate of repeating in milliseconds
-#define NUMBER_OF_BUTTONS 17 // Number of joystick buttons
-
-int buttonHeldDown[NUMBER_OF_BUTTONS] = {0}; // Array to keep track of buttons state
-Uint32 buttonRepeatTimer[NUMBER_OF_BUTTONS] = {0}; // Array to keep track of repeat timers for buttons
 
 void processEvents() {
 	SDL_Event event;
 	while (SDL_PollEvent(&event)) {
 		if (event.type == SDL_JOYBUTTONDOWN) {
 			int button = event.jbutton.button;
-			buttonHeldDown[button] = 1;
-			printf("buttondown call\n");
-			buttonRepeatTimer[button] = SDL_GetTicks() + REPEAT_DELAY;
-			generateKeyboardEvent(mapButtonToKey(button), SDL_KEYDOWN);
-		} else if (event.type == SDL_JOYBUTTONUP) {
-			int button = event.jbutton.button;
-			buttonHeldDown[button] = 0;
-			printf("buttonup call\n");
-			generateKeyboardEvent(mapButtonToKey(button), SDL_KEYUP);
+			generateKeyboardEvent(button);	
 		} else if (event.type == SDL_JOYAXISMOTION) {
             int axis = event.jaxis.axis;
             int value = event.jaxis.value;
@@ -307,7 +260,7 @@ void processEvents() {
 				refreshRequest=1;
 			}
 		} else if (event.type==getKeyUp()&&!alternateControls) {
-			printf("EVENT KEY Up 1: %d\n",event.key.keysym.sym);
+			printf("EVENT KEY Up: %d\n",event.key.keysym.sym);
 
 			if (currentState==BROWSING_GAME_LIST && previousState != SELECTING_EMULATOR ) {
 				if(((int)event.key.keysym.sym)==BTN_B) {
@@ -378,16 +331,6 @@ void processEvents() {
 			currentState=BROWSING_GAME_LIST;
 		}
 	}
-
-    // Handle repeating of keys
-    Uint32 currentTime = SDL_GetTicks();
-    for (int button = 0; button < NUMBER_OF_BUTTONS; button++) {
-        if (buttonHeldDown[button] && currentTime > buttonRepeatTimer[button]) {
-            generateKeyboardEvent(mapButtonToKey(button), SDL_KEYDOWN);
-            buttonRepeatTimer[button] = currentTime + REPEAT_RATE;
-        }
-    }
-
 }
 #ifdef TARGET_PC
 	int main(int argc, char* argv[]) {
@@ -396,13 +339,14 @@ void processEvents() {
 			exit(0);
 		}
 #else
-	int main() {
+	int main(int argc, char *argv[]) {
 #endif
 	logMessage("INFO","main","Setup 1");
 #ifdef TARGET_PC
 	initialSetup(atoi(argv[1]), atoi(argv[2]));
 #elif defined MIYOOMINI || defined TARGET_RG35XX
 	initialSetup(640,480);
+	//initialSetup(1280,1024);
 #else
 	initialSetup(320,240);
 #endif
@@ -420,7 +364,7 @@ void processEvents() {
 		}
 	} else {
 		currentState=BROWSING_GAME_LIST;
-		//pushEvent();
+		pushEvent();
 	}
 	const int GAME_FPS=60;
 	const int FRAME_DURATION_IN_MILLISECONDS = 1000/GAME_FPS;
@@ -428,11 +372,6 @@ void processEvents() {
 	updateScreen(CURRENT_SECTION.currentGameNode);
 	refreshScreen();
 	startBatteryTimer();
-	// start joystick repeat timer
-	Uint32 currentTime = SDL_GetTicks();
-	for (int button = 0; button < NUMBER_OF_BUTTONS; button++) {
-	    buttonRepeatTimer[button] = currentTime + 3000;
-	}
 	while(running) {
 		start_time=SDL_GetTicks();
 		processEvents();

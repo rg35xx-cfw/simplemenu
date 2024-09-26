@@ -1,5 +1,5 @@
 #include <fcntl.h>
-#include <linux/soundcard.h>
+//#include <linux/soundcard.h>
 #include <stdio.h>
 #include <sys/ioctl.h>
 #include <sys/mman.h>
@@ -13,7 +13,7 @@
 #if defined TARGET_RG35XX
 #define SYSFS_CPUFREQ_DIR "/sys/devices/system/cpu/cpu0/cpufreq"
 #define SYSFS_CPUFREQ_LIST SYSFS_CPUFREQ_DIR "/scaling_available_frequencies"
-#define SYSFS_CPUFREQ_SET SYSFS_CPUFREQ_DIR "/scaling_max_freq"
+#define SYSFS_CPUFREQ_SET SYSFS_CPUFREQ_DIR "/scaling_setspeed"
 #define SYSFS_CPUFREQ_CUR SYSFS_CPUFREQ_DIR "/scaling_cur_freq"
 #endif
 
@@ -45,7 +45,7 @@ void setCPU(uint32_t mhz)
 	currentCPU = mhz;
 	#if defined TARGET_RG35XX
 		char strMhz[10];
-		printf("CPUFREQ_SET: %s\n", SYSFS_CPUFREQ_SET);
+		// printf("CPUFREQ_SET: %s\n", SYSFS_CPUFREQ_SET);
 		int fd = open(SYSFS_CPUFREQ_SET, O_RDWR);
 		to_string(strMhz, (mhz * 1));
 		ssize_t ret = write(fd, strMhz, strlen(strMhz));

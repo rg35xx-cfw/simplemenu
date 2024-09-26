@@ -278,10 +278,10 @@ int checkIfEmulatorExists(char *path, char *executable) {
 }
 
 void resetFrameBuffer1() {
-	//int ret = system("./scripts/reset_fb");
-	//if (ret == -1) {
-	//	generateError("FATAL ERROR", 1);
-	//}
+	int ret = system("./scripts/reset_fb");
+	if (ret == -1) {
+		generateError("FATAL ERROR", 1);
+	}
 }
 
 void executeCommand(char *emulatorFolder, char *executable,	char *fileToBeExecutedWithFullPath, int consoleApp, int frequency) {
@@ -349,7 +349,7 @@ void executeCommand(char *emulatorFolder, char *executable,	char *fileToBeExecut
 	logMessage("INFO", "executeCommand", emulatorFolder);
 	logMessage("INFO", "executeCommand", exec);
 	logMessage("INFO", "executeCommand", fileToBeExecutedWithFullPath);
-//	SDL_ShowCursor(1);
+	//SDL_ShowCursor(0);
 	freeResources();
 #ifndef TARGET_OD_BETA
 	resetFrameBuffer1();

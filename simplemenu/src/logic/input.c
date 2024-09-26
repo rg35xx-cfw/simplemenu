@@ -42,11 +42,11 @@ int initializeJoystick() {
         printf("Number of Buttons: %d\n", SDL_JoystickNumButtons(joystick));
     }
 
-    SDL_Event event;
-    while (SDL_PollEvent(&event)) {
-        // We are just polling all events to remove the initial joystick events from the queue.
-    }
-    printf("Finished setting up joystick\n");
+    // SDL_Event event;
+    // while (SDL_PollEvent(&event)) {
+    //     // We are just polling all events to remove the initial joystick events from the queue.
+    // }
+    // printf("Finished setting up joystick\n");
 
     return 0;
 }

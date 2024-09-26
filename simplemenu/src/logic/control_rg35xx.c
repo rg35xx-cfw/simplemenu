@@ -39,7 +39,7 @@ int performAction(struct Node *node) {
 			return 1;
 		}
 		if (keys[BTN_START]) {
-			//chosenSetting=0; //M1
+			chosenSetting=0;
 			previousState=currentState;
 			currentState=SETTINGS_SCREEN;
 			chosenSetting=SHUTDOWN_OPTION;
@@ -48,7 +48,7 @@ int performAction(struct Node *node) {
 			currRawtime = time(NULL);
 			currTime = localtime(&currRawtime);
 			lastMin=currTime->tm_min;
-			lastChargeLevel = getBatteryLevel();
+			lastChargeLevel = 0;//getBatteryLevel();
 			return 1;
 		}
 	}
@@ -285,7 +285,7 @@ int performAction(struct Node *node) {
 			previousState=currentState;
 			currentState=SETTINGS_SCREEN;
 			themeChanged=activeTheme;
-			lastChargeLevel = getBatteryLevel();
+			lastChargeLevel = 0;//getBatteryLevel();
 			return 0;
 		}
 		if (rom!=NULL&&keys[BTN_A]) {
